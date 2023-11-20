@@ -1,12 +1,18 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import * as Joi from 'joi';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
-import { CommonModule } from './common/common.module';
 import { User } from './users/entities/user.entity';
+import { JwtModule } from './jwt/jwt.module';
+import { JwtMiddleware } from './jwt/jwt.middleware';
 
 @Module({
   imports: [
@@ -26,6 +32,7 @@ import { User } from './users/entities/user.entity';
         DB_USERNAME: Joi.string().required(),
         DB_PASSWORD: Joi.string().required(),
         DB_NAME: Joi.string().required(),
+        PRIVATE_KEY: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRoot({
@@ -44,14 +51,31 @@ import { User } from './users/entities/user.entity';
       driver: ApolloDriver,
       // 메모리로 파일을 만들어냄.
       autoSchemaFile: true,
+      // graphql resolver의 context를 통해 request user를 공유함
+      context: ({ req }) => ({ user: req['user'] }),
+    }),
+    JwtModule.forRoot({
+      privateKey: process.env.PRIVATE_KEY,
     }),
     UsersModule,
-    CommonModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+// export class AppModule {}
+
+// middleware를 제외 또는 적용시킬지
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // JwtMiddleware를 정확히 어떤 routes에 적용할지 지정
+    consumer.apply(JwtMiddleware).forRoutes({
+      // path: 사용할 routes, method: 사용할 메소드 지정
+      path: '/graphql',
+      method: RequestMethod.POST,
+    });
+    // consumer.apply(JwtMiddleware).exclude로 지정시 path에 지정된 경로 제외
+  }
+}
 
 console.log('NODE_ENV === ' + process.env.NODE_ENV);
 console.log('DB_HOST ==== ' + process.env.DB_HOST);
