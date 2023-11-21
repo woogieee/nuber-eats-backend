@@ -13,6 +13,7 @@ import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
+import { Verification } from './users/entities/verification.entity';
 
 @Module({
   imports: [
@@ -45,7 +46,7 @@ import { JwtMiddleware } from './jwt/jwt.middleware';
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: process.env.NODE_ENV !== 'prod',
       // entities 때문에 Restaurant가 DB가 됨
-      entities: [User],
+      entities: [User, Verification],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -67,14 +68,13 @@ import { JwtMiddleware } from './jwt/jwt.middleware';
 // middleware를 제외 또는 적용시킬지
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // JwtMiddleware를 정확히 어떤 routes에 적용할지 지정
-    consumer.apply(JwtMiddleware).forRoutes({
+    consumer
+      // JwtMiddleware를 정확히 어떤 routes에 적용할지 지정
+      .apply(JwtMiddleware)
       // path: 사용할 routes, method: 사용할 메소드 지정
-      path: '/graphql',
-      method: RequestMethod.POST,
-    });
-    // consumer.apply(JwtMiddleware).exclude로 지정시 path에 지정된 경로 제외
+      .forRoutes({ path: '/graphql', method: RequestMethod.POST });
   }
+  // consumer.apply(JwtMiddleware).exclude로 지정시 path에 지정된 경로 제외
 }
 
 console.log('NODE_ENV === ' + process.env.NODE_ENV);
