@@ -21,7 +21,7 @@ export class MailService {
     form.append('to', `kimdw@hklogistics.kr`);
     form.append('subject', subject);
     form.append('template', template);
-    emailVars.forEach((eVar) => form.append(eVar.key, eVar.value));
+    emailVars.forEach((eVar) => form.append(`v:${eVar.key}`, eVar.value));
     try {
       await got(`https://api.mailgun.net/v3/${this.options.domain}/messages`, {
         method: 'POST',
@@ -40,6 +40,7 @@ export class MailService {
   sendVerificationEmail(email: string, code: string) {
     this.sendEmail('Verify Your Email', 'verify-email', [
       { key: 'code', value: code },
+      { key: 'username', value: email },
     ]);
   }
 }
