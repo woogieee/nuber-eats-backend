@@ -20,9 +20,11 @@ export class JwtMiddleware implements NestMiddleware {
         // 토큰에서 id를 찾음
         if (typeof decoded === 'object' && decoded.hasOwnProperty('id')) {
           // db에서 해당 id를 가진 user를 찾음
-          const user = await this.usersService.findById(decoded['id']);
-          // user를 request object에 붙여서 보냄
-          req['user'] = user;
+          const { user, ok } = await this.usersService.findById(decoded['id']);
+          if (ok) {
+            // user를 request object에 붙여서 보냄
+            req['user'] = user;
+          }
         }
       } catch (e) {}
     }
