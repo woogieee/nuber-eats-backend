@@ -13,6 +13,10 @@ import {
   EditRestaurantOutput,
 } from './dtos/edit-restaurant.dto';
 import { CategoryRepository } from './repositories/category.repository';
+import {
+  DeleteRestaurantInput,
+  DeleteRestaurantOutput,
+} from './dtos/delete-restaurant.dto';
 
 @Injectable()
 export class RestaurantService {
@@ -47,6 +51,7 @@ export class RestaurantService {
     }
   }
 
+  // 레스토랑 수정
   async editRestaurant(
     owner: User,
     editRestaurantInput: EditRestaurantInput,
@@ -95,6 +100,43 @@ export class RestaurantService {
       return {
         ok: false,
         error: 'Could not edit Restaurant',
+      };
+    }
+  }
+
+  // 레스토랑 삭제
+  async deleteRestaurant(
+    owner: User,
+    { restaurantId }: DeleteRestaurantInput,
+  ): Promise<DeleteRestaurantOutput> {
+    try {
+      const restaurant = await this.restaurants.findOne({
+        where: { id: restaurantId },
+        // Id만 가져오고 object를 가져오지 않음
+        // loadRelationIds: true,
+      });
+      if (!restaurant) {
+        return {
+          ok: false,
+          error: 'Restaurant not found',
+        };
+      }
+      // owner 확인 = user와 일치한지
+      if (owner.id !== restaurant.ownerId) {
+        return {
+          ok: false,
+          error: `You can't delete a restaurant that you don't own`,
+        };
+      }
+      console.log('레스토랑 삭제', restaurant);
+      await this.restaurants.delete(restaurantId);
+      return {
+        ok: true,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not delete restaurant.',
       };
     }
   }

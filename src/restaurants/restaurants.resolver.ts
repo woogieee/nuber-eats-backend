@@ -12,6 +12,10 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from './dtos/edit-restaurant.dto';
+import {
+  DeleteRestaurantInput,
+  DeleteRestaurantOutput,
+} from './dtos/delete-restaurant.dto';
 
 @Resolver(() => Restaurant)
 export class RestaurantResolver {
@@ -35,6 +39,7 @@ export class RestaurantResolver {
     );
   }
 
+  // 레스토랑 수정
   @Mutation(() => EditRestaurantOutput)
   @Role(['Owner'])
   editRestaurant(
@@ -42,5 +47,18 @@ export class RestaurantResolver {
     @Args('input') editRestaurantInput: EditRestaurantInput,
   ): Promise<EditRestaurantOutput> {
     return this.restaurantService.editRestaurant(owner, editRestaurantInput);
+  }
+
+  // 레스토랑 삭제
+  @Mutation(() => DeleteRestaurantOutput)
+  @Role(['Owner'])
+  deleteRestaurant(
+    @AuthUser() owner: User,
+    @Args('input') deleteRestaurantInput: DeleteRestaurantInput,
+  ): Promise<DeleteRestaurantOutput> {
+    return this.restaurantService.deleteRestaurant(
+      owner,
+      deleteRestaurantInput,
+    );
   }
 }
