@@ -1,8 +1,12 @@
-import { EntityRepository, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Category } from '../entities/category.entity';
+import { Injectable } from '@nestjs/common';
 
-@EntityRepository(Category)
+@Injectable()
 export class CategoryRepository extends Repository<Category> {
+  constructor(private readonly dataSource: DataSource) {
+    super(Category, dataSource.createEntityManager());
+  }
   async getOrCreate(name: string): Promise<Category> {
     const categoryName = name
       // 앞뒤 빈칸을 지워줌
