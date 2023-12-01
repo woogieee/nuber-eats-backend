@@ -8,6 +8,10 @@ import { RestaurantService } from './restaurants.service';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { Role } from 'src/auth/role.decorator';
+import {
+  EditRestaurantInput,
+  EditRestaurantOutput,
+} from './dtos/edit-restaurant.dto';
 
 @Resolver(() => Restaurant)
 export class RestaurantResolver {
@@ -17,6 +21,7 @@ export class RestaurantResolver {
   // owner인 user만 접근가능
   // @SetMetadata('role', UserRole.Owner)
   @Role(['Owner'])
+  // 레스토랑 등록
   async createRestaurant(
     // restaurant의 owner는 로그인한 유저가 됨
     @AuthUser() authUser: User,
@@ -28,5 +33,14 @@ export class RestaurantResolver {
       authUser,
       createRestaurantInput,
     );
+  }
+
+  @Mutation(() => EditRestaurantOutput)
+  @Role(['Owner'])
+  editRestaurant(
+    @AuthUser() owner: User,
+    @Args('input') editRestaurantInput: EditRestaurantInput,
+  ): Promise<EditRestaurantOutput> {
+    return this.restaurantService.editRestaurant(owner, editRestaurantInput);
   }
 }

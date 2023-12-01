@@ -16,15 +16,18 @@ export class AuthGuard implements CanActivate {
       'roles',
       context.getHandler(),
     );
+    // canActivate함수: true를 리턴하면 계속 진행
     if (!roles) {
       return true;
     }
     // HTTP Request를 ghaphql로 바꾸기
     const gqlContext = GqlExecutionContext.create(context).getContext();
     const user: User = gqlContext['user'];
+    // 유저 로그인 X
     if (!user) {
       return false;
     }
+    // metadata 있고, 로그인된 유저 있고, any도 있으면, 모든 사람이접근 가능
     if (roles.includes('Any')) {
       return true;
     }
