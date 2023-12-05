@@ -1,9 +1,11 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsString, Length } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
-import { Column, Entity, ManyToOne, RelationId } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, RelationId } from 'typeorm';
 import { Category } from './category.entity';
 import { User } from 'src/users/entities/user.entity';
+import { Dish } from './dish.entity';
+import { Order } from 'src/orders/entities/order.entity';
 
 // InputType으로 지정하지만 스키마가 유일한 type을 가져야하기 때문에 스키마에 포함되지 않게 함
 // isAbstract를 쓰면 이걸 어디선가 복사해서 쓴다는 얘기
@@ -32,6 +34,11 @@ export class Restaurant extends CoreEntity {
   @IsString()
   address: string;
 
+  // 오더
+  @Field(() => [Order])
+  @OneToMany(() => Order, (order) => order.restaurant)
+  orders: Order[];
+
   // nullable: 카테고리를 지울때 레스토랑을 지우면 안돼서 추가
   @Field(() => Category, { nullable: true })
   // restaurant는 category를 가질 수 있고 만약 category가 지워지면 restaurant는 category를 가지지 않게 됨
@@ -47,4 +54,9 @@ export class Restaurant extends CoreEntity {
 
   @RelationId((restaurant: Restaurant) => restaurant.owner)
   ownerId: number;
+
+  @Field(() => [Dish])
+  // OneToMany의 type이 Dish, function(Dish의 restaurant을 dish.restaurant에서 찾음)
+  @OneToMany(() => Dish, (dish) => dish.restaurant)
+  menu: Dish[];
 }

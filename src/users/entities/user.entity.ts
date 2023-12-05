@@ -10,6 +10,7 @@ import { CoreEntity } from 'src/common/entities/core.entity';
 import { InternalServerErrorException } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsEnum, IsString } from 'class-validator';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
+import { Order } from 'src/orders/entities/order.entity';
 
 export enum UserRole {
   Client = 'Client',
@@ -47,6 +48,16 @@ export class User extends CoreEntity {
   @Field(() => [Restaurant])
   @OneToMany(() => Restaurant, (restaurant) => restaurant.owner)
   restaurants: Restaurant[];
+
+  // 오더
+  @Field(() => [Order])
+  @OneToMany(() => Order, (order) => order.customer)
+  orders: Order[];
+
+  // 라이더
+  @Field(() => [Order])
+  @OneToMany(() => Order, (order) => order.driver)
+  rides: Order[];
 
   // DB에 비밀번호를 넣기전에 hash함
   @BeforeInsert()

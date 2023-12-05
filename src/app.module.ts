@@ -19,6 +19,9 @@ import { Restaurant } from './restaurants/entities/restaurant.entity';
 import { Category } from './restaurants/entities/category.entity';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { AuthModule } from './auth/auth.module';
+import { Dish } from './restaurants/entities/dish.entity';
+import { OrdersModule } from './orders/orders.module';
+import { Order } from './orders/entities/order.entity';
 
 @Module({
   imports: [
@@ -55,7 +58,7 @@ import { AuthModule } from './auth/auth.module';
       logging:
         process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
       // entities 때문에 Restaurant가 DB가 됨
-      entities: [User, Verification, Restaurant, Category],
+      entities: [User, Verification, Restaurant, Category, Dish, Order],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -75,6 +78,7 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
     UsersModule,
     RestaurantsModule,
+    OrdersModule,
   ],
   controllers: [],
   providers: [],
