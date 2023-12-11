@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Order } from './entities/order.entity';
+import { Order, OrderStatus } from './entities/order.entity';
 import { Repository } from 'typeorm';
 import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
@@ -8,6 +8,8 @@ import { User, UserRole } from 'src/users/entities/user.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
+import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
+import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 
 @Injectable()
 export class OrderService {
@@ -42,7 +44,6 @@ export class OrderService {
       const orderItems: OrderItem[] = [];
       for (const item of items) {
         const dish = await this.dishes.findOne({ where: { id: item.dishId } });
-        // const dish = await this.dishes.findOne({ where: { id: 666 } });
         if (!dish) {
           return {
             ok: false,
@@ -51,7 +52,6 @@ export class OrderService {
         }
         // 각 dish 최종가격 계산
         let dishFinalPrice = dish.price;
-        console.log(`Dish price: ${dish.price}`);
         // item의 옵션 계산
         for (const itemOption of item.options) {
           const dishOption = dish.options.find(
@@ -105,27 +105,157 @@ export class OrderService {
     user: User,
     { status }: GetOrdersInput,
   ): Promise<GetOrdersOutput> {
-    // console.log(user);
-    if (user.role === UserRole.Client) {
-      const orders = await this.orders.find({
-        // where: { customer: { user.customer } },
-        where: { customer: true },
-      });
-    } else if (user.role === UserRole.Delivery) {
-      const orders = await this.orders.find({
-        // where: { driver: { orders: user } },
-        where: { driver: true },
-      });
-    } else if (user.role === UserRole.Owner) {
-      const orders = await this.restaurants.find({
-        // where: { owner: { orders: user } },
-        where: { owner: true },
-        relations: ['orders'],
-      });
-      console.log(orders);
+    try {
+      let orders: Order[];
+      if (user.role === UserRole.Client) {
+        orders = await this.orders.find({
+          where: {
+            customer: { id: user.id },
+            ...(status && { status }),
+          },
+        });
+      } else if (user.role === UserRole.Delivery) {
+        orders = await this.orders.find({
+          where: {
+            driver: { id: user.id },
+            ...(status && { status }),
+          },
+        });
+      } else if (user.role === UserRole.Owner) {
+        const restaurants = await this.restaurants.find({
+          where: { owner: { id: user.id } },
+          relations: ['orders'],
+        });
+        orders = restaurants.map((restaurant) => restaurant.orders).flat(1);
+        // status가 있는 경우에 orders를 filtering
+        if (status) {
+          orders = orders.filter((order) => order.status === status);
+        }
+      }
+      return {
+        ok: true,
+        orders,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not get order',
+      };
     }
-    return {
-      ok: false,
-    };
+  }
+
+  canSeeOrder(user: User, order: Order): boolean {
+    // 주문을 볼 수 있는지 확인
+    let canSee = true;
+    if (user.role === UserRole.Client && order.customerId !== user.id) {
+      canSee = false;
+    }
+    if (user.role === UserRole.Delivery && order.driverId !== user.id) {
+      canSee = false;
+    }
+    if (user.role === UserRole.Owner && order.restaurant.ownerId !== user.id) {
+      canSee = false;
+    }
+    return canSee;
+  }
+
+  async getOrder(
+    user: User,
+    { id: orderId }: GetOrderInput,
+  ): Promise<GetOrderOutput> {
+    try {
+      const order = await this.orders.findOne({
+        where: { id: orderId },
+        relations: ['restaurant'],
+      });
+      if (!order) {
+        return {
+          ok: false,
+          error: 'Order not found.',
+        };
+      }
+      if (!this.canSeeOrder(user, order)) {
+        return {
+          ok: false,
+          error: `You can't see that.`,
+        };
+      }
+      return {
+        ok: true,
+        order,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not load order.',
+      };
+    }
+  }
+
+  // 오더 수정
+  async editOrder(
+    user: User,
+    { id: orderId, status }: EditOrderInput,
+  ): Promise<EditOrderOutput> {
+    try {
+      const order = await this.orders.findOne({
+        where: { id: orderId },
+        relations: ['restaurant'],
+      });
+      if (!order) {
+        return {
+          ok: false,
+          error: 'Order not found,',
+        };
+      }
+      // 유저가 배달원인지, 가게주인인지, 고객인지 체크
+      if (!this.canSeeOrder(user, order)) {
+        return {
+          ok: false,
+          error: `Can't see this.`,
+        };
+      }
+      let canEdit = true;
+      // 유저가 Client면 수정할 수 없다.
+      if (user.role === UserRole.Client) {
+        canEdit = false;
+      }
+      // 유저가 Owner인데 status가 Cooking && Cooked가 아니면 '수정할 수 없다'
+      if (user.role === UserRole.Owner) {
+        if (status !== OrderStatus.Cooking && status !== OrderStatus.Cooked) {
+          canEdit = false;
+        }
+      }
+      // 유저가 Delivery인데 status가 PickedUp && Delivered가 아니면 수정할 수 없다.
+      if (user.role === UserRole.Delivery) {
+        if (
+          status !== OrderStatus.PickedUp &&
+          status !== OrderStatus.Delivered
+        ) {
+          canEdit = false;
+        }
+      }
+      if (!canEdit) {
+        return {
+          ok: false,
+          error: `You can't do that.`,
+        };
+      }
+      // 오류가 없으면 세이브
+      await this.orders.save([
+        {
+          id: orderId,
+          status,
+        },
+      ]);
+      return {
+        ok: true,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not edit order.',
+      };
+    }
   }
 }

@@ -73,8 +73,21 @@ import { OrderItem } from './orders/entities/order-item.entity';
       driver: ApolloDriver,
       // 메모리로 파일을 만들어냄.
       autoSchemaFile: true,
+      // 웹 소켓 기능 추가
+      installSubscriptionHandlers: true,
+      subscriptions: {
+        'graphql-ws': true,
+        // 'subscriptions-transport-ws': true,
+      },
       // graphql resolver의 context를 통해 request user를 공유함
-      context: ({ req }) => ({ user: req['user'] }),
+      context: ({ req, connection }) => {
+        if (req) {
+          console.log(connection);
+          return { user: req['user'] };
+        } else {
+          console.log(connection);
+        }
+      },
     }),
     JwtModule.forRoot({
       privateKey: process.env.PRIVATE_KEY,
