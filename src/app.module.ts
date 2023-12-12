@@ -1,10 +1,5 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import * as Joi from 'joi';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,7 +7,6 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
-import { JwtMiddleware } from './jwt/jwt.middleware';
 import { Verification } from './users/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
 import { Restaurant } from './restaurants/entities/restaurant.entity';
@@ -23,6 +17,7 @@ import { Dish } from './restaurants/entities/dish.entity';
 import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -75,18 +70,17 @@ import { OrderItem } from './orders/entities/order-item.entity';
       autoSchemaFile: true,
       // 웹 소켓 기능 추가
       installSubscriptionHandlers: true,
+      // subscription
       subscriptions: {
-        'graphql-ws': true,
-        // 'subscriptions-transport-ws': true,
+        'subscriptions-transport-ws': {
+          onConnect: (connectionParams: any) => ({
+            token: connectionParams['x-jwt'],
+          }),
+        },
       },
       // graphql resolver의 context를 통해 request user를 공유함
-      context: ({ req, connection }) => {
-        if (req) {
-          console.log(connection);
-          return { user: req['user'] };
-        } else {
-          console.log(connection);
-        }
+      context: ({ req }) => {
+        return { token: req.headers['x-jwt'] };
       },
     }),
     JwtModule.forRoot({
@@ -101,27 +95,22 @@ import { OrderItem } from './orders/entities/order-item.entity';
     UsersModule,
     RestaurantsModule,
     OrdersModule,
+    CommonModule,
   ],
   controllers: [],
   providers: [],
 })
-// export class AppModule {}
 
+// 웹소켓 연결을 위해 jwt는 사용하지 않음
 // middleware를 제외 또는 적용시킬지
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      // JwtMiddleware를 정확히 어떤 routes에 적용할지 지정
-      .apply(JwtMiddleware)
-      // path: 사용할 routes, method: 사용할 메소드 지정
-      .forRoutes({ path: '/graphql', method: RequestMethod.POST });
-  }
-  // consumer.apply(JwtMiddleware).exclude로 지정시 path에 지정된 경로 제외
-}
-
-console.log('NODE_ENV === ' + process.env.NODE_ENV);
-console.log('DB_HOST ==== ' + process.env.DB_HOST);
-console.log('DB_PORT ==== ' + +process.env.DB_PORT);
-console.log('DB_USERNAME ==== ' + process.env.DB_USERNAME);
-console.log('DB_PASSWORD ==== ' + process.env.DB_PASSWORD);
-console.log('DB_NAME ==== ' + process.env.DB_NAME);
+// export class AppModule implements NestModule {
+//   configure(consumer: MiddlewareConsumer) {
+//     consumer
+//       // JwtMiddleware를 정확히 어떤 routes에 적용할지 지정
+//       .apply(JwtMiddleware)
+//       // path: 사용할 routes, method: 사용할 메소드 지정
+//       .forRoutes({ path: '/graphql', method: RequestMethod.POST });
+//   }
+//   // consumer.apply(JwtMiddleware).exclude로 지정시 path에 지정된 경로 제외
+// }
+export class AppModule {}
