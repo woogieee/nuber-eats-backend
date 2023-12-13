@@ -194,6 +194,10 @@ export class RestaurantService {
       // 카테고리에 해당하는 레스토랑 찾기
       const restaurants = await this.restaurants.find({
         where: { category: { id: category.id } },
+        order: {
+          // 내림차순 정렬로 상단노출
+          isPromoted: 'DESC',
+        },
         take: 25, // 한 페이지에 25개 레스토랑 찾기
         skip: (page - 1) * 25, // 두번째 이후 페이지
       });
@@ -220,6 +224,10 @@ export class RestaurantService {
       const [restaurants, totalResults] = await this.restaurants.findAndCount({
         skip: (page - 1) * 25,
         take: 25,
+        order: {
+          // 내림차순 정렬로 상단노출
+          isPromoted: 'DESC',
+        },
       });
       return {
         ok: true,

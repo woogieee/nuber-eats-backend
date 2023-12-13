@@ -59,4 +59,12 @@ export class Restaurant extends CoreEntity {
   // OneToMany의 type이 Dish, function(Dish의 restaurant을 dish.restaurant에서 찾음)
   @OneToMany(() => Dish, (dish) => dish.restaurant)
   menu: Dish[];
+
+  @Field(() => Boolean)
+  @Column({ default: false })
+  isPromoted: boolean;
+
+  @Field(() => Date, { nullable: true })
+  @Column({ nullable: true })
+  promotedUntil: Date;
 }
