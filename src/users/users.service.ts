@@ -142,13 +142,20 @@ export class UsersService {
 
   async verifyEmail(code: string): Promise<VerifyEmailOutput> {
     try {
+      // 검증(verification)을 코드(code)를 기반으로 찾음
       const verification = await this.verifications.findOne({
         where: { code },
         relations: ['user'],
       });
+      // 검증이 존재하면
       if (verification) {
+        // 사용자를 확인(verified) 상태로 설정
         verification.user.verified = true;
+
+        // 사용자 정보를 저장
         await this.users.save(verification.user);
+
+        // 검증 정보 삭제
         await this.verifications.delete(verification.id);
         return { ok: true };
       }
