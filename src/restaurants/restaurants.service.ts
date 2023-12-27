@@ -40,6 +40,8 @@ export class RestaurantService {
     private readonly dishes: Repository<Dish>,
   ) {}
 
+  private readonly setPage: number = 6;
+
   // 레스토랑 생성
   async createRestaurant(
     owner: User,
@@ -198,8 +200,8 @@ export class RestaurantService {
           // 내림차순 정렬로 상단노출
           isPromoted: 'DESC',
         },
-        take: 25, // 한 페이지에 25개 레스토랑 찾기
-        skip: (page - 1) * 25, // 두번째 이후 페이지
+        take: this.setPage, // 한 페이지에 6개 레스토랑 찾기
+        skip: (page - 1) * this.setPage, // 두번째 이후 페이지
       });
       // 페이지 삽입
       category.restaurants = restaurants;
@@ -208,7 +210,7 @@ export class RestaurantService {
       return {
         ok: true,
         category,
-        totalPages: Math.ceil(totalResults / 25),
+        totalPages: Math.ceil(totalResults / this.setPage),
         totalResults,
       };
     } catch {
@@ -223,8 +225,8 @@ export class RestaurantService {
   async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
     try {
       const [restaurants, totalResults] = await this.restaurants.findAndCount({
-        skip: (page - 1) * 6,
-        take: 6,
+        skip: (page - 1) * this.setPage,
+        take: this.setPage,
         order: {
           // 내림차순 정렬로 상단노출
           isPromoted: 'DESC',
@@ -233,7 +235,7 @@ export class RestaurantService {
       return {
         ok: true,
         results: restaurants,
-        totalPages: Math.ceil(totalResults / 6),
+        totalPages: Math.ceil(totalResults / this.setPage),
         totalResults,
       };
     } catch {
@@ -280,14 +282,14 @@ export class RestaurantService {
       const [restaurants, totalResults] = await this.restaurants.findAndCount({
         // 대소문자 상관없이 검색-ILIKE, DB에 직접 접근
         where: { name: Raw((name) => `${name} ILIKE '%${query}%'`) },
-        skip: (page - 1) * 25,
-        take: 25,
+        skip: (page - 1) * this.setPage,
+        take: this.setPage,
       });
       return {
         ok: true,
         restaurants,
         totalResults,
-        totalPages: Math.ceil(totalResults / 25),
+        totalPages: Math.ceil(totalResults / this.setPage),
       };
     } catch {
       return {
