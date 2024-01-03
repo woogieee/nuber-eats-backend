@@ -9,7 +9,6 @@ import {
 } from './dtos/create-payment.dto';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { GetPaymentsOutput } from './dtos/get-payments.dto';
-import { Interval } from '@nestjs/schedule';
 
 @Injectable()
 export class PaymentService {
@@ -83,7 +82,6 @@ export class PaymentService {
     }
   }
 
-  @Interval(2000)
   // 광고 날짜가 만료된 레스토랑 체크
   async checkPromotedRestaurants() {
     const restaurants = await this.restaurants.find({
