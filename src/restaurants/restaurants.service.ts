@@ -59,6 +59,8 @@ export class RestaurantService {
       await this.restaurants.save(newRestaurant);
       return {
         ok: true,
+        // 레스토랑 id만 받아서 프론트에서 보여주기 때문에 프로그램이 가벼워짐
+        restaurantId: newRestaurant.id,
       };
     } catch {
       return {
