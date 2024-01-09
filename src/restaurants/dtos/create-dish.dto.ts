@@ -8,6 +8,7 @@ export class CreateDishInput extends PickType(Dish, [
   'price',
   'description',
   'options',
+  'photo',
 ]) {
   // 어떤 레스토랑에 dish를 추가하는지 알기위해 Id를 넣어줌
   @Field(() => Int)
