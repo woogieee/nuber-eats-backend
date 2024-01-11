@@ -86,8 +86,11 @@ import { UploadsModule } from './uploads/uploads.module';
         },
       },
       // graphql resolver의 context를 통해 request user를 공유함
-      context: ({ req }) => {
-        return { token: req.headers['x-jwt'] };
+      context: ({ req, connection }) => {
+        const TOKEN_KEY = 'x-jwt';
+        return {
+          token: req ? req.headers[TOKEN_KEY] : connection.context[TOKEN_KEY],
+        };
       },
     }),
     ScheduleModule.forRoot(),
