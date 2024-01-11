@@ -22,6 +22,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { Payment } from './payments/entities/payment.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UploadsModule } from './uploads/uploads.module';
+import { Context } from 'apollo-server-core';
 
 @Module({
   imports: [
@@ -79,17 +80,18 @@ import { UploadsModule } from './uploads/uploads.module';
       installSubscriptionHandlers: true,
       // subscription
       subscriptions: {
-        'subscriptions-transport-ws': {
-          onConnect: (connectionParams: any) => ({
-            token: connectionParams['x-jwt'],
-          }),
+        'graphql-ws': {
+          onConnect: (context: Context<any>) => {
+            const { connectionParams, extra } = context;
+            console.log('connectionParams+++++++++++++++++' + connectionParams);
+            return (extra.token = connectionParams['x-jwt']);
+          },
         },
       },
       // graphql resolver의 context를 통해 request user를 공유함
-      context: ({ req, connection }) => {
-        const TOKEN_KEY = 'x-jwt';
+      context: ({ req, extra }) => {
         return {
-          token: req ? req.headers[TOKEN_KEY] : connection.context[TOKEN_KEY],
+          token: extra ? extra.token : req.headers['x-jwt'],
         };
       },
     }),
@@ -113,17 +115,4 @@ import { UploadsModule } from './uploads/uploads.module';
   controllers: [],
   providers: [],
 })
-
-// 웹소켓 연결을 위해 jwt는 사용하지 않음
-// middleware를 제외 또는 적용시킬지
-// export class AppModule implements NestModule {
-//   configure(consumer: MiddlewareConsumer) {
-//     consumer
-//       // JwtMiddleware를 정확히 어떤 routes에 적용할지 지정
-//       .apply(JwtMiddleware)
-//       // path: 사용할 routes, method: 사용할 메소드 지정
-//       .forRoutes({ path: '/graphql', method: RequestMethod.POST });
-//   }
-//   // consumer.apply(JwtMiddleware).exclude로 지정시 path에 지정된 경로 제외
-// }
 export class AppModule {}
