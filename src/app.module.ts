@@ -83,16 +83,14 @@ import { Context } from 'apollo-server-core';
         'graphql-ws': {
           onConnect: (context: Context<any>) => {
             const { connectionParams, extra } = context;
-            console.log('connectionParams+++++++++++++++++' + connectionParams);
-            return (extra.token = connectionParams['x-jwt']);
+            extra.token = connectionParams['x-jwt'];
+            console.log('extraToken +++', extra.token);
           },
         },
       },
       // graphql resolver의 context를 통해 request user를 공유함
       context: ({ req, extra }) => {
-        return {
-          token: extra ? extra.token : req.headers['x-jwt'],
-        };
+        return { token: req ? req.headers['x-jwt'] : extra.token };
       },
     }),
     ScheduleModule.forRoot(),

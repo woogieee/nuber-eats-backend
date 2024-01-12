@@ -66,7 +66,8 @@ export class OrderResolver {
     return this.ordersService.editOrder(user, editOrderInput);
   }
 
-  // subscription user 주문시, 가게주인 주문 확인
+  // client가 order떄렸을떄, Owner가 oreder받는 subscription
+  // return은 type는 Order임
   @Subscription(() => Order, {
     filter: ({ pendingOrders: { ownerId } }, _, { user }) => {
       return ownerId === user.id;
