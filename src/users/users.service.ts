@@ -33,10 +33,10 @@ export class UsersService {
     console.log('회원가입 서비스 진입');
     try {
       // check new user
-      // const exists = await this.users.findOne({ where: { email } });
-      // if (exists) {
-      //   return { ok: false, error: 'There is a user with that email already' };
-      // }
+      const exists = await this.users.findOne({ where: { email } });
+      if (exists) {
+        return { ok: false, error: 'There is a user with that email already' };
+      }
       // create user
       const user = await this.users.save(
         this.users.create({ email, password, role }),
