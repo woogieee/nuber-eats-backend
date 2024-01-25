@@ -118,3 +118,5 @@ import { Context } from 'apollo-server-core';
   providers: [],
 })
 export class AppModule {}
+
+console.log('+++++++++++++++++++++' + process.env.DATABASE_URL);
