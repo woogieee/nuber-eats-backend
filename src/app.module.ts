@@ -33,10 +33,10 @@ import { Context } from 'apollo-server-core';
       envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test',
       // 서버에 deploy 할 때 환경변수 파일을 사용하지 않는다.
       // process.env.NODE_ENV 값이 prod 일때만 true
-      ignoreEnvFile: process.env.NODE_ENV === 'production',
+      ignoreEnvFile: process.env.NODE_ENV === 'prod',
       // joi를 이용한 유효성 검사
       validationSchema: Joi.object({
-        NODE_ENV: Joi.string().valid('dev', 'production', 'test').required(),
+        NODE_ENV: Joi.string().valid('dev', 'prod', 'test').required(),
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.string().required(),
         DB_USERNAME: Joi.string().required(),
