@@ -35,6 +35,10 @@ import {
   CreateCategoryInput,
   CreateCategoryOutput,
 } from './dtos/create-category.dto';
+import {
+  DeleteCategoryInput,
+  DeleteCategoryOutput,
+} from './dtos/delete-category.dto';
 
 @Injectable()
 export class RestaurantService {
@@ -221,6 +225,32 @@ export class RestaurantService {
       return {
         ok: false,
         error: 'Could not create category',
+      };
+    }
+  }
+
+  // 카테고리 삭제
+  async deleteCategory({
+    categoryId,
+  }: DeleteCategoryInput): Promise<DeleteCategoryOutput> {
+    try {
+      const category = await this.categories.findOne({
+        where: { id: categoryId },
+      });
+      if (!category) {
+        return {
+          ok: false,
+          error: 'Category not found',
+        };
+      }
+      await this.categories.delete(categoryId);
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: 'Could not delete category.',
       };
     }
   }

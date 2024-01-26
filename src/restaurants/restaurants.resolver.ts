@@ -43,6 +43,10 @@ import {
   CreateCategoryInput,
   CreateCategoryOutput,
 } from './dtos/create-category.dto';
+import {
+  DeleteCategoryInput,
+  DeleteCategoryOutput,
+} from './dtos/delete-category.dto';
 
 /**
  * 레스토랑
@@ -140,6 +144,7 @@ export class RestaurantResolver {
 @Resolver(() => Category)
 export class CategoryResolver {
   constructor(private readonly restaurantService: RestaurantService) {}
+
   // 카테고리 생성
   @Mutation(() => CreateCategoryOutput)
   @Role(['Admin'])
@@ -147,6 +152,15 @@ export class CategoryResolver {
     @Args('input') createCategoryInput: CreateCategoryInput,
   ): Promise<CreateCategoryOutput> {
     return this.restaurantService.createCategory(createCategoryInput);
+  }
+
+  // 카테고리 삭제
+  @Mutation(() => DeleteCategoryOutput)
+  @Role(['Admin'])
+  deleteCategory(
+    @Args('input') deleteCategoryInput: DeleteCategoryInput,
+  ): Promise<DeleteCategoryOutput> {
+    return this.restaurantService.deleteCategory(deleteCategoryInput);
   }
 
   // 매 request마다 계산된 field를 만들어줌
