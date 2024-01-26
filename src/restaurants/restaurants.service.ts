@@ -31,6 +31,10 @@ import { EditDishInput, EditDishOutput } from './dtos/edit-dish.dto';
 import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
 import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 import { MyRestaurantInput, MyRestaurantOutput } from './dtos/my-restaurant';
+import {
+  CreateCategoryInput,
+  CreateCategoryOutput,
+} from './dtos/create-category.dto';
 
 @Injectable()
 export class RestaurantService {
@@ -199,6 +203,24 @@ export class RestaurantService {
       return {
         ok: false,
         error: 'Could not delete restaurant.',
+      };
+    }
+  }
+
+  // 카테고리 생성
+  async createCategory(
+    createCategoryInput: CreateCategoryInput,
+  ): Promise<CreateCategoryOutput> {
+    try {
+      const newCategory = this.categories.create(createCategoryInput);
+      await this.categories.save(newCategory);
+      return {
+        ok: true,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not create category',
       };
     }
   }

@@ -30,7 +30,6 @@ export class UsersService {
     password,
     role,
   }: CreateAccountInput): Promise<CreateAccountOutput> {
-    console.log('회원가입 서비스 진입');
     try {
       // check new user
       const exists = await this.users.findOne({ where: { email } });
@@ -50,7 +49,6 @@ export class UsersService {
       return { ok: true };
     } catch (e) {
       // make error
-      console.log('회원가입 서비스 진입도 못함');
       console.log(e);
       return { ok: false, error: `Couldn't create account` };
     }
