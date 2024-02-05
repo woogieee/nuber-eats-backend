@@ -13,11 +13,15 @@ import { Verification } from './entities/verification.entity';
 import { UserProfileOutput } from './dtos/user-profile.dto';
 import { VerifyEmailOutput } from './dtos/verify-email.dto';
 import { MailService } from 'src/mail/mail.service';
+import { CreateUserGPSInput, CreateUserGPSOutput } from './dtos/create-gps.dto';
+import { UserGPS } from './entities/user-gps.entity';
+import { EditUserGPSInput, EditUserGPSOutput } from './dtos/edit-gps.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
+    @InjectRepository(UserGPS) private readonly usersGPS: Repository<UserGPS>,
     @InjectRepository(Verification)
     private readonly verifications: Repository<Verification>,
     private readonly jwtService: JwtService,
@@ -163,6 +167,54 @@ export class UsersService {
       return { ok: false, error: 'Verification not found.' };
     } catch (error) {
       return { ok: false, error: 'Could not verify email.' };
+    }
+  }
+
+  // 유저 gps 저장
+  async userGPS(
+    createUserGPSInput: CreateUserGPSInput,
+  ): Promise<CreateUserGPSOutput> {
+    try {
+      const user = await this.users.findOne({
+        where: { id: createUserGPSInput.userId },
+      });
+
+      const userGPS = this.usersGPS.create({
+        lat: createUserGPSInput.lat,
+        lng: createUserGPSInput.lng,
+        user,
+      });
+
+      await this.usersGPS.save(userGPS);
+
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: 'GPS정보를 가져오는데 실패했습니다.' };
+    }
+  }
+
+  // 유저 GPS 정보 업데이트
+  async editUserGPS(
+    editUserGPSInput: EditUserGPSInput,
+  ): Promise<EditUserGPSOutput> {
+    try {
+      const userGPS = await this.usersGPS.findOne({
+        where: { user: { id: editUserGPSInput.userId } },
+      });
+
+      if (!userGPS) {
+        return { ok: false, error: '유저 GPS 정보를 찾을 수 없습니다.' };
+      }
+
+      // 업데이트할 정보 설정
+      userGPS.lat = editUserGPSInput.lat;
+      userGPS.lng = editUserGPSInput.lng;
+
+      await this.usersGPS.save(userGPS);
+
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: 'GPS 정보를 업데이트하는데 실패했습니다.' };
     }
   }
 }

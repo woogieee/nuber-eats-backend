@@ -5,9 +5,10 @@ import { UsersResolver } from './users.resolver';
 import { UsersService } from './users.service';
 import { ConfigService } from '@nestjs/config';
 import { Verification } from './entities/verification.entity';
+import { UserGPS } from './entities/user-gps.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Verification])],
+  imports: [TypeOrmModule.forFeature([User, UserGPS, Verification])],
   providers: [UsersResolver, UsersService, ConfigService],
   exports: [UsersService],
 })

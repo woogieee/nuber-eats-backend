@@ -23,6 +23,7 @@ import { Payment } from './payments/entities/payment.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UploadsModule } from './uploads/uploads.module';
 import { Context } from 'apollo-server-core';
+import { UserGPS } from './users/entities/user-gps.entity';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { Context } from 'apollo-server-core';
       // entities 때문에 Restaurant가 DB가 됨
       entities: [
         User,
+        UserGPS,
         Verification,
         Restaurant,
         Category,
