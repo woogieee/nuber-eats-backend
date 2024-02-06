@@ -3,7 +3,7 @@ import { IsNumber, IsOptional } from 'class-validator';
 import { CoreOutput } from 'src/common/dtos/output.dto';
 
 @InputType()
-export class CreateUserGPSInput {
+export class UpdateUserGPSInput {
   @Field(() => Float, { nullable: true })
   @IsOptional()
   @IsNumber()
@@ -19,4 +19,4 @@ export class CreateUserGPSInput {
 }
 
 @ObjectType()
-export class CreateUserGPSOutput extends CoreOutput {}
+export class UpdateUserGPSOutput extends CoreOutput {}

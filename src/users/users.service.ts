@@ -13,9 +13,8 @@ import { Verification } from './entities/verification.entity';
 import { UserProfileOutput } from './dtos/user-profile.dto';
 import { VerifyEmailOutput } from './dtos/verify-email.dto';
 import { MailService } from 'src/mail/mail.service';
-import { CreateUserGPSInput, CreateUserGPSOutput } from './dtos/create-gps.dto';
+import { UpdateUserGPSInput, UpdateUserGPSOutput } from './dtos/update-gps.dto';
 import { UserGPS } from './entities/user-gps.entity';
-import { EditUserGPSInput, EditUserGPSOutput } from './dtos/edit-gps.dto';
 
 @Injectable()
 export class UsersService {
@@ -170,50 +169,43 @@ export class UsersService {
     }
   }
 
-  // 유저 gps 저장
-  async userGPS(
-    createUserGPSInput: CreateUserGPSInput,
-  ): Promise<CreateUserGPSOutput> {
+  async updateUserGPS({
+    lat,
+    lng,
+    userId,
+  }: UpdateUserGPSInput): Promise<UpdateUserGPSOutput> {
     try {
-      const user = await this.users.findOne({
-        where: { id: createUserGPSInput.userId },
+      // 해당 유저의 GPS 정보를 데이터베이스에서 찾습니다.
+      let userGPS = await this.usersGPS.findOne({
+        where: { user: { id: userId } },
       });
 
-      const userGPS = this.usersGPS.create({
-        lat: createUserGPSInput.lat,
-        lng: createUserGPSInput.lng,
-        user,
-      });
-
-      await this.usersGPS.save(userGPS);
-
-      return { ok: true };
-    } catch (error) {
-      return { ok: false, error: 'GPS정보를 가져오는데 실패했습니다.' };
-    }
-  }
-
-  // 유저 GPS 정보 업데이트
-  async editUserGPS(
-    editUserGPSInput: EditUserGPSInput,
-  ): Promise<EditUserGPSOutput> {
-    try {
-      const userGPS = await this.usersGPS.findOne({
-        where: { user: { id: editUserGPSInput.userId } },
-      });
-
+      // 만약 해당 유저의 GPS 정보가 없다면
       if (!userGPS) {
-        return { ok: false, error: '유저 GPS 정보를 찾을 수 없습니다.' };
+        // 유저 테이블에서 해당 유저를 찾습니다.
+        const user = await this.users.findOne({
+          where: { id: userId },
+        });
+
+        // 새로운 GPS 정보를 생성합니다.
+        userGPS = this.usersGPS.create({
+          lat: lat,
+          lng: lng,
+          user,
+        });
+      } else {
+        // 이미 존재하는 GPS 정보라면 업데이트합니다.
+        userGPS.lat = lat;
+        userGPS.lng = lng;
       }
 
-      // 업데이트할 정보 설정
-      userGPS.lat = editUserGPSInput.lat;
-      userGPS.lng = editUserGPSInput.lng;
-
+      // 업데이트 또는 생성된 유저의 GPS 정보를 저장합니다.
       await this.usersGPS.save(userGPS);
 
+      // 성공 여부를 나타내는 객체를 반환합니다.
       return { ok: true };
     } catch (error) {
+      // 실패한 경우 에러 메시지를 포함한 객체를 반환합니다.
       return { ok: false, error: 'GPS 정보를 업데이트하는데 실패했습니다.' };
     }
   }

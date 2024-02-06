@@ -11,8 +11,7 @@ import { UserProfileInput, UserProfileOutput } from './dtos/user-profile.dto';
 import { EditProfileInput, EditProfileOutput } from './dtos/edit-profile.dto';
 import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 import { Role } from 'src/auth/role.decorator';
-import { CreateUserGPSInput, CreateUserGPSOutput } from './dtos/create-gps.dto';
-import { EditUserGPSInput, EditUserGPSOutput } from './dtos/edit-gps.dto';
+import { UpdateUserGPSInput, UpdateUserGPSOutput } from './dtos/update-gps.dto';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -68,20 +67,11 @@ export class UsersResolver {
   }
 
   // 유저 GPS 정보 저장
-  @Mutation(() => CreateUserGPSOutput)
+  @Mutation(() => UpdateUserGPSOutput)
   @Role(['Client'])
-  async userGPS(
-    @Args('input') createUserGPSInput: CreateUserGPSInput,
-  ): Promise<CreateUserGPSOutput> {
-    return this.usersService.userGPS(createUserGPSInput);
-  }
-
-  // 유저 GPS 정보 업데이트 뮤테이션
-  @Mutation(() => EditUserGPSOutput)
-  @Role(['Client'])
-  async editUserGPS(
-    @Args('input') editUserGPSInput: EditUserGPSInput,
-  ): Promise<EditUserGPSOutput> {
-    return this.usersService.editUserGPS(editUserGPSInput);
+  async updateUserGPS(
+    @Args('input') updateUserGPSInput: UpdateUserGPSInput,
+  ): Promise<UpdateUserGPSOutput> {
+    return this.usersService.updateUserGPS(updateUserGPSInput);
   }
 }
