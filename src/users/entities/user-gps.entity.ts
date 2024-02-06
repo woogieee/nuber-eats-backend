@@ -1,6 +1,6 @@
 // user-gps.entity.ts
 import { Field, Float, InputType, ObjectType } from '@nestjs/graphql';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, OneToOne } from 'typeorm';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { User } from './user.entity';
 
@@ -16,6 +16,6 @@ export class UserGPS extends CoreEntity {
   @Column({ type: 'float' })
   lng: number;
 
-  @ManyToOne(() => User, (user) => user.gpsList, { onDelete: 'CASCADE' })
+  @OneToOne(() => User, (user) => user.gpsList, { onDelete: 'CASCADE' })
   user: User;
 }

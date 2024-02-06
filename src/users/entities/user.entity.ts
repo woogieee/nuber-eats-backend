@@ -4,7 +4,15 @@ import {
   ObjectType,
   registerEnumType,
 } from '@nestjs/graphql';
-import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { InternalServerErrorException } from '@nestjs/common';
@@ -74,10 +82,11 @@ export class User extends CoreEntity {
   rides: Order[];
 
   // gps
-  @OneToMany(() => UserGPS, (gps) => gps.user, { eager: true, cascade: true })
-  @Field(() => [UserGPS], { nullable: true })
+  @OneToOne(() => UserGPS, { eager: true, cascade: true })
+  @Field(() => UserGPS, { nullable: true })
+  @JoinColumn()
   @IsOptional()
-  gpsList?: UserGPS[]; // 이제 옵셔널로 변경
+  gpsList?: UserGPS;
 
   // DB에 비밀번호를 넣기전에 hash함
   @BeforeInsert()
