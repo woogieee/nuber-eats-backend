@@ -1,4 +1,3 @@
-// user-gps.entity.ts
 import { Field, Float, InputType, ObjectType } from '@nestjs/graphql';
 import { Column, Entity, OneToOne } from 'typeorm';
 import { CoreEntity } from 'src/common/entities/core.entity';

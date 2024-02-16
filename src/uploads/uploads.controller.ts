@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as AWS from 'aws-sdk';
+import * as crypto from 'crypto';
 
 const BUCKET_NAME = 'kimchinuber5555';
 
@@ -21,8 +22,12 @@ export class UploadsController {
       },
     });
     // bucket에 업로드
+
+    // 파일명을 UTF-8로 인코딩
+    const randomString = crypto.randomBytes(10).toString('hex');
+    const objectName = `${Date.now()}_${randomString}`;
+
     try {
-      const objectName = `${Date.now() + file.originalname}`;
       await new AWS.S3()
         .putObject({
           Body: file.buffer,
